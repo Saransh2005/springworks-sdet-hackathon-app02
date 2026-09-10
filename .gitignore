@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 *.log
+leaderboard-live.html
+probe_api.py
