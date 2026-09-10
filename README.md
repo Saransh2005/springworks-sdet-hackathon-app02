@@ -8,6 +8,21 @@
 
 ---
 
+> [!IMPORTANT]
+> ### 📌 Quick Evaluation Guide for Reviewers
+> 
+> This repository is structured to effortlessly evaluate both **Phase 2 Core** and **Phase 2 Bonus**:
+> 
+> | Evaluation Mode | Branch | Command | Expected Result |
+> |---|---|---|---|
+> | **Phase 2 Core (Defect Proof)** | `main` | `npm test` | **15 Tests FAIL** (proving all 15 bugs) |
+> | **Phase 2 Bonus (Fixed App)** | `main` | `npm run test:fixed` | **15 Tests PASS (100% Green)** |
+> | **Phase 2 Bonus (Dedicated Branch)** | `bonus-fixes` | `npm test` | **15 Tests PASS (100% Green)** |
+> 
+> *Evaluators can also view the open Pull Request on GitHub to inspect side-by-side code diffs of all 15 bug patches!*
+
+---
+
 ## 1. Project Directory Structure
 
 The repository is organized following standard SDET test engineering architecture:
