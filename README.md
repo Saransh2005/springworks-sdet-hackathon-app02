@@ -19,7 +19,7 @@
 > | **Phase 2 Bonus (Fixed App)** | `main` | `npm run test:fixed` | **15 Tests PASS (100% Green)** |
 > | **Phase 2 Bonus (Dedicated Branch)** | `bonus-fixes` | `npm test` | **15 Tests PASS (100% Green)** |
 > 
-> *Evaluators can also view the open Pull Request on GitHub to inspect side-by-side code diffs of all 15 bug patches!*
+> *All bonus fixed code is available directly on `main` (`src/server.fixed.js` & `src/public/app.fixed.js`), as well as on the `bonus-fixes` branch!*
 
 ---
 
