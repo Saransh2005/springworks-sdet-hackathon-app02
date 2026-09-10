@@ -1,0 +1,91 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spec</title><style>
+:root{color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;background:#f6f7f9;color:#1c2024;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:32px 24px 80px}
+.back{display:inline-block;margin-bottom:20px;color:#0b63e5;text-decoration:none;font-size:14px}
+.back:hover{text-decoration:underline}
+h1{font-size:28px;margin:.4em 0 .3em;line-height:1.25}
+h2{font-size:20px;margin:1.6em 0 .4em;padding-bottom:.3em;border-bottom:1px solid #e3e6ea}
+h3{font-size:16px;margin:1.3em 0 .3em}
+p{margin:.6em 0}
+a{color:#0b63e5}
+code{background:#eceef1;padding:.12em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{background:#0f1720;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}
+pre code{background:none;padding:0;color:inherit}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #dfe3e8;padding:8px 12px;text-align:left;vertical-align:top}
+th{background:#eef1f4;font-weight:600}
+tr:nth-child(even) td{background:#fafbfc}
+ul,ol{margin:.6em 0;padding-left:1.5em}
+li{margin:.25em 0}
+hr{border:0;border-top:1px solid #e3e6ea;margin:2em 0}
+@media (prefers-color-scheme:dark){
+ body{background:#0d1117;color:#c9d1d9}
+ h2{border-color:#21262d}
+ code{background:#1b2028}
+ th{background:#161b22}
+ th,td{border-color:#21262d}
+ tr:nth-child(even) td{background:#0f141a}
+ hr{border-color:#21262d}
+ .back,a{color:#4c9ffe}
+}</style></head><body><div class="wrap"><a class="back" href="/">← Back to app</a><h1>Address Verification Form</h1>
+<h2>1. What this app is</h2>
+<p>A Digital Address Verification (DAV) intake tool. A candidate submits their current and permanent address; the server stores the submission and computes a naive "match %" between the two addresses.</p>
+<h2>2. API reference / spec</h2>
+<p>Base URL: <code>https://sv-qa-02-address-verify.onrender.com</code></p>
+<h3>Address shape</h3>
+<p>Both <code>current</code> and <code>permanent</code> addresses share this shape:</p>
+<pre><code>{ "line1": "12 MG Road", "city": "Bengaluru", "state": "Karnataka", "pincode": "560001" }</code></pre>
+<ul><li><code>line1</code>, <code>city</code>, <code>state</code> are required, non-blank strings (surrounding</li></ul>
+<p>  whitespace should be trimmed before storage/comparison).</p>
+<ul><li><code>state</code> must be one of the fixed list of states offered in the UI dropdown</li></ul>
+<p>  (Karnataka, Maharashtra, Delhi, Tamil Nadu, Telangana, Uttar Pradesh, West   Bengal, Gujarat).</p>
+<ul><li><code>pincode</code> must be exactly 6 digits, not starting with <code>0</code> (matches</li></ul>
+<p>  <code>/^[1-9][0-9]{5}$/</code>). Anything else is invalid.</p>
+<h3><code>POST /api/address</code></h3>
+<p>Body:</p>
+<pre><code>{
+  "candidateId": 101,
+  "current": { "line1": "...", "city": "...", "state": "...", "pincode": "..." },
+  "permanent": { "line1": "...", "city": "...", "state": "...", "pincode": "..." },
+  "sameAsPermanent": false
+}</code></pre>
+<ul><li><code>sameAsPermanent</code> defaults to <code>false</code> if omitted.</li><li>If <code>sameAsPermanent</code> is <code>true</code>, the server stores the permanent address as</li></ul>
+<p>  an exact copy of the current address — the submitted <code>permanent</code> object   (if any) is ignored.</p>
+<ul><li><code>current</code> is always validated. <code>permanent</code> is validated the same way,</li></ul>
+<p>  unless <code>sameAsPermanent</code> is <code>true</code> (in which case it's derived from   <code>current</code>, so it doesn't need to be separately valid).</p>
+<ul><li>Any validation failure returns <code>400</code> with an error message and stores</li></ul>
+<p>  nothing.</p>
+<ul><li>On success, computes <code>matchPercent</code>: the percentage of the 4 address</li></ul>
+<p>  fields (<code>line1</code>, <code>city</code>, <code>state</code>, <code>pincode</code>) that match between <code>current</code>   and <code>permanent</code>, compared case-insensitively. Two identical addresses   score <code>100</code>; completely different addresses score <code>0</code>. Returns <strong><code>201</code></strong>   with the stored submission:</p>
+<pre><code>{
+  "id": 1,
+  "candidateId": 101,
+  "current": { ... },
+  "permanent": { ... },
+  "sameAsPermanent": false,
+  "matchPercent": 100,
+  "createdAt": "2026-07-01T09:00:00.000Z"
+}</code></pre>
+<h3><code>GET /api/address/:candidateId</code></h3>
+<p>Returns the submission for that candidate.</p>
+<ul><li><code>200</code> with the submission object if found.</li><li><code>404</code> if no submission exists for that candidate id.</li></ul>
+<h3><code>GET /api/address</code></h3>
+<p>Returns <code>200</code> with a JSON array of all submissions.</p>
+<h2>3. UI spec</h2>
+<ul><li><strong>Submit Address</strong> form: Candidate ID, Current Address (line 1, city,</li></ul>
+<p>  state dropdown, pincode), a "Permanent address is the same as current"   checkbox, and a Permanent Address section.</p>
+<ul><li>The state dropdowns require an explicit choice — no state should be</li></ul>
+<p>    pre-selected by default.</p>
+<ul><li>Typing an invalid pincode shows an inline error message before the form</li></ul>
+<p>    is submitted.</p>
+<ul><li>Checking "same as current" disables the Permanent Address inputs and</li></ul>
+<p>    keeps them mirroring the Current Address fields for as long as the     checkbox stays checked — including if the candidate keeps editing the     Current Address afterward.</p>
+<ul><li>On submit: a success message is shown only when the submission actually</li></ul>
+<p>    succeeds; a failed submission shows an error message instead, and the     submitted-addresses list only gains a new row on success.</p>
+<ul><li><strong>Submitted Addresses</strong> table: shows candidate id, current address,</li></ul>
+<p>  permanent address, whether "same as permanent" was set, the match   percentage (shown with a <code>%</code> sign), and the submission timestamp.</p>
+<h2>4. Your task</h2>
+<p>Find and report as many bugs as you can. Bugs may exist in both the API and the UI. For each bug you find, report:</p>
+<ul><li>Steps to reproduce (exact request/curl command, or UI click path)</li><li>Expected behavior (per this spec) vs. actual behavior</li><li>Severity (low / medium / high)</li></ul></div></body></html>
