@@ -682,7 +682,7 @@
       </div>
       <div class="filter-pills">
         <button class="pill active" data-filter="all" onclick="setFilter('all', this)">All Candidates (205)</button>
-        <button class="pill" data-filter="app02" onclick="setFilter('app02', this)">🏆 App 02 Cohort (Your App - 100% Solved)</button>
+        <button class="pill" data-filter="app02" onclick="setFilter('app02', this)">🏆 App 02 Cohort (Max 26 Pts / 15 Bugs)</button>
         <button class="pill" data-filter="top10" onclick="setFilter('top10', this)">Top 10 Global</button>
         <button class="pill" data-filter="top25" onclick="setFilter('top25', this)">Top 25 Global</button>
         <button class="pill" data-filter="friend" onclick="setFilter('friend', this)">🤝 Friend Watch (App 06)</button>
@@ -691,22 +691,23 @@
     </div>
 
     <!-- App Cohort Info Banner -->
-    <div style="background: rgba(16, 22, 36, 0.8); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-      <div>
-        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.08em; margin-bottom: 4px;">🎯 App-Wise Cohort Normalization Intelligence</div>
-        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
-          Springworks assigned 7 different apps (App 01–07). In <strong style="color: #f59e0b;">App 02 (Your App)</strong>, there were exactly <strong>15 planted bugs</strong>. 
-          You hold <strong style="color: #10b981;">100% Completion (15/15 Solved)</strong> — Rank #1 in App 02!
+    <div style="background: rgba(16, 22, 36, 0.85); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 14px; padding: 18px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      <div style="max-width: 800px;">
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.08em; margin-bottom: 4px;">🎯 Why Some Candidates Have 28–33 Points:</div>
+        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+          Springworks created <strong>7 different applications</strong>. Apps like <strong>App 01, App 05, and App 07</strong> have up to <strong>7 routes and 18–20+ bugs</strong> (e.g. Mallela: 19 solved = 33 pts, Ankit: 16 solved = 29 pts, Akshat: 28 pts).<br>
+          In <strong style="color: #f59e0b;">App 02 (Your App)</strong>, there are <strong>strictly 15 bugs totaling exactly 26 points</strong>. 
+          You hold <strong style="color: #10b981;">100% Completion (15/15 Solved, 26/26 Pts)</strong> — the absolute #1 maximum in App 02!
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
-        <div style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); border-radius: 8px; padding: 6px 12px; text-align: center;">
+        <div style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); border-radius: 8px; padding: 8px 14px; text-align: center;">
           <div style="font-size: 10px; color: #f59e0b; font-weight: 700; text-transform: uppercase;">Your App (App 02)</div>
-          <div style="font-size: 14px; font-weight: 800; color: #fff;">#1 Saransh (100%)</div>
+          <div style="font-size: 15px; font-weight: 800; color: #fff;">#1 Saransh (100% - 26 pts)</div>
         </div>
-        <div style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); border-radius: 8px; padding: 6px 12px; text-align: center;">
+        <div style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); border-radius: 8px; padding: 8px 14px; text-align: center;">
           <div style="font-size: 10px; color: #06b6d4; font-weight: 700; text-transform: uppercase;">Friend App (App 06)</div>
-          <div style="font-size: 14px; font-weight: 800; color: #fff;">#43 Shiva (5 Solved)</div>
+          <div style="font-size: 15px; font-weight: 800; color: #fff;">#43 Shiva (5 Solved)</div>
         </div>
       </div>
     </div>
@@ -901,8 +902,9 @@
       else if (currentFilter === 'active') filtered = filtered.filter(r => r.score > 0);
       else if (currentFilter === 'zero') filtered = filtered.filter(r => r.score === 0);
       else if (currentFilter === 'app02') {
-        // App 02 cohort has max 15 bugs / 26 pts
-        filtered = filtered.filter(r => r.solved <= 15);
+        // App 02 only has 15 bugs with a theoretical maximum score of 26 points.
+        // Anyone with >26 points belongs to App 01, 05, or 07 which have more routes and higher bug point pools.
+        filtered = filtered.filter(r => r.score <= 26 && r.solved <= 15);
       }
       else if (currentFilter === 'friend') {
         filtered = filtered.filter(r => r.name && r.name.toLowerCase().includes('shiva'));

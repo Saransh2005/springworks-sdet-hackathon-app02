@@ -5,14 +5,23 @@
   "description": "Springworks SDET Internship Hackathon automated test suite proving all planted defects in App 02",
   "main": "app.js",
   "scripts": {
+    "start": "node 02-address-verification-form/server.js",
     "test": "node --test tests/*.bugs.test.js",
     "test:api": "node --test tests/api.bugs.test.js",
     "test:ui": "node --test tests/ui.bugs.test.js"
   },
-  "keywords": ["sdet", "hackathon", "automated-tests", "qa"],
+  "keywords": [
+    "sdet",
+    "hackathon",
+    "automated-tests",
+    "qa"
+  ],
   "author": "Saransh Singh",
   "license": "ISC",
   "devDependencies": {
     "jsdom": "^26.0.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }
