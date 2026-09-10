@@ -159,4 +159,54 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
     );
   });
 
+  // BUG-02-12: state-not-persisted on UI
+  test('BUG-02-12: UI submitted-addresses table should gain a new row on successful form submission', async () => {
+    const candidateId = 912;
+    const newSubmission = {
+      id: 10,
+      candidateId,
+      current: { line1: '12 MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001' },
+      permanent: { line1: '12 MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001' },
+      sameAsPermanent: true,
+      matchPercent: 100,
+      createdAt: '2026-09-10T12:00:00.000Z'
+    };
+
+    // Initial state: empty list
+    window.renderSubmissions([]);
+
+    // Mock successful POST response
+    window.fetch = async (url, opts) => {
+      if (opts && opts.method === 'POST') {
+        return {
+          ok: true,
+          status: 201,
+          json: async () => newSubmission
+        };
+      }
+      // When GET /api/address is called, server returns unpersisted array (simulating state loss)
+      return { ok: true, json: async () => [] };
+    };
+
+    // Fill form and submit
+    document.getElementById('candidateId').value = String(candidateId);
+    document.getElementById('current-line1').value = '12 MG Road';
+    document.getElementById('current-city').value = 'Bengaluru';
+    document.getElementById('current-pincode').value = '560001';
+
+    const form = document.getElementById('address-form');
+    form.dispatchEvent(new window.Event('submit', { cancelable: true }));
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Spec: "and the submitted-addresses list only gains a new row on success."
+    // Currently, because state is not persisted in UI or server, table remains empty without the new row (FAILS)
+    const tbody = document.getElementById('submissions-tbody');
+    const rows = tbody.querySelectorAll('tr');
+    assert.ok(
+      rows.length > 0,
+      `Expected table to gain a row for candidate ${candidateId} after successful submit, but row count is ${rows.length}`
+    );
+  });
+
 });

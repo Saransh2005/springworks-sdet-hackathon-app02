@@ -242,4 +242,60 @@ describe('Springworks SDET Bug Verification Test Suite — API Defects', () => {
     );
   });
 
+  // BUG-02-08: off-by-one-boundary on POST /api/address
+  test('BUG-02-08: POST /api/address should enforce strict 6-digit boundary for pincode (rejecting 5 or 7 digits)', async () => {
+    const payload5Digit = {
+      candidateId: 908,
+      current: {
+        ...validAddress,
+        pincode: '56000' // 5 digits (boundary violation)
+      },
+      permanent: { ...validAddress },
+      sameAsPermanent: false
+    };
+
+    const res = await fetch(`${BASE_URL}/api/address`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload5Digit)
+    });
+
+    // Spec: pincode must be exactly 6 digits, not starting with 0. Anything else is invalid.
+    // Currently returns 200 OK accepting 5-digit pincodes due to boundary defect (FAILS)
+    assert.equal(
+      res.status,
+      400,
+      `Expected HTTP 400 Bad Request for 5-digit pincode, but received HTTP ${res.status}`
+    );
+  });
+
+  // BUG-02-14: state-not-persisted on GET /api/address/:candidateId
+  test('BUG-02-14: GET /api/address/:candidateId should return newly submitted candidate address', async () => {
+    const candidateId = 914;
+    const payload = {
+      candidateId,
+      current: { ...validAddress },
+      permanent: { ...validAddress },
+      sameAsPermanent: false
+    };
+
+    // Step 1: Submit new address
+    await fetch(`${BASE_URL}/api/address`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // Step 2: Query by candidateId
+    const res = await fetch(`${BASE_URL}/api/address/${candidateId}`);
+
+    // Spec: Returns 200 with the submission object if found
+    // Currently returns 200 with null body because submission state is not persisted (FAILS)
+    const data = await res.json();
+    assert.ok(
+      data && data.candidateId === candidateId,
+      `Expected GET /api/address/${candidateId} to return submission for candidate ${candidateId}, but got ${JSON.stringify(data)}`
+    );
+  });
+
 });
