@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Springworks SDET Hackathon — Live Command Center (All 205 Candidates)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(16, 22, 36, 0.75);
+      --bg-card-hover: rgba(23, 31, 51, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.25);
+      --silver: #cbd5e1;
+      --bronze: #d97706;
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --green: #10b981;
+      --cyan: #06b6d4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, rgba(217, 70, 239, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* Ambient glow bar */
+    .glow-header-line {
+      height: 3px;
+      width: 100%;
+      background: var(--accent-gradient);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    /* Header Section */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      width: fit-content;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-pill {
+      background: rgba(16, 22, 36, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .btn {
+      background: rgba(99, 102, 241, 0.18);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #ffffff;
+      border-color: rgba(99, 102, 241, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* KPI Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .kpi-card.highlight-gold {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(16, 22, 36, 0.8) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      box-shadow: 0 4px 20px var(--gold-glow);
+    }
+
+    .kpi-card.highlight-friend {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(16, 22, 36, 0.8) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Podium Section */
+    .podium-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .podium-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .podium-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+
+    .podium-card.rank-1 {
+      border: 2px solid rgba(245, 158, 11, 0.6);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.15) 0%, rgba(16, 22, 36, 0.9) 100%);
+      box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15);
+      transform: translateY(-4px);
+    }
+
+    .podium-card.rank-2 {
+      border: 1px solid rgba(203, 213, 225, 0.4);
+      background: linear-gradient(180deg, rgba(203, 213, 225, 0.1) 0%, rgba(16, 22, 36, 0.9) 100%);
+    }
+
+    .podium-card.rank-3 {
+      border: 1px solid rgba(217, 119, 6, 0.4);
+      background: linear-gradient(180deg, rgba(217, 119, 6, 0.1) 0%, rgba(16, 22, 36, 0.9) 100%);
+    }
+
+    .crown-icon {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+
+    .podium-rank-badge {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    .rank-1 .podium-rank-badge { background: var(--gold); color: #000; }
+    .rank-2 .podium-rank-badge { background: var(--silver); color: #000; }
+    .rank-3 .podium-rank-badge { background: var(--bronze); color: #fff; }
+
+    .podium-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .podium-score {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .podium-details {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(7, 9, 14, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px 10px 36px;
+      font-size: 14px;
+      color: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Leaderboard Table */
+    .table-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 65vh;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    thead {
+      background: rgba(11, 15, 25, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    th {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    tbody tr.row-user {
+      background: rgba(245, 158, 11, 0.12) !important;
+      border-left: 4px solid var(--gold);
+    }
+
+    tbody tr.row-friend {
+      background: rgba(6, 182, 212, 0.12) !important;
+      border-left: 4px solid var(--cyan);
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .rank-cell {
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      width: 80px;
+    }
+
+    .rank-cell.top-1 { color: var(--gold); }
+    .rank-cell.top-2 { color: var(--silver); }
+    .rank-cell.top-3 { color: var(--bronze); }
+
+    .name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .user-tag {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .friend-tag {
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .score-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .solved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .time-cell {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Score Progress Bar */
+    .score-bar-container {
+      width: 80px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      background: var(--accent-gradient);
+      border-radius: 999px;
+    }
+
+    .score-bar-fill.max {
+      background: linear-gradient(90deg, #f59e0b, #10b981);
+    }
+
+    /* Floating Alert Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-msg {
+      background: rgba(16, 22, 36, 0.95);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-header-line"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-left">
+        <div class="badge-tag">
+          <span class="pulse-dot"></span>
+          <span>Live Synchronizer Active</span>
+        </div>
+        <h1>Springworks SDET Hackathon Live War Room</h1>
+        <p class="subtitle">Tracking all 205 participants in real-time · Auto-refreshing every 5 seconds</p>
+      </div>
+      <div class="header-controls">
+        <div class="control-pill">
+          <span>Last sync:</span>
+          <strong id="last-sync-time" style="color: #fff;">Connecting…</strong>
+        </div>
+        <button class="btn" id="refresh-btn" onclick="fetchLeaderboard(true)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Refresh
+        </button>
+        <button class="btn" id="sound-toggle-btn" onclick="toggleSound()">
+          <span id="sound-icon">🔔</span> Audio Alerts: <strong id="sound-state">ON</strong>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top KPI Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card highlight-gold" id="user-kpi-card">
+        <div class="kpi-title">
+          <span>🏆 Your Standing</span>
+          <span class="badge-tag" style="background: rgba(245,158,11,0.2); color: #f59e0b; border-color: #f59e0b;">Rank #1 Leader</span>
+        </div>
+        <div class="kpi-value">
+          <span id="user-score">26</span>
+          <span style="font-size: 14px; font-weight: 500; color: #cbd5e1;">pts</span>
+        </div>
+        <div class="kpi-sub">
+          <strong style="color: #10b981;">15 / 15 Bugs Solved (100%)</strong> · Earliest First Blood
+        </div>
+      </div>
+
+      <div class="kpi-card highlight-friend" id="friend-kpi-card" onclick="scrollToCandidate('Shiva Choudhry')" style="cursor: pointer;">
+        <div class="kpi-title">
+          <span>🤝 Friend Tracker</span>
+          <span class="badge-tag" style="background: rgba(6,182,212,0.2); color: #06b6d4; border-color: #06b6d4;">Click to Jump</span>
+        </div>
+        <div class="kpi-value">
+          <span id="friend-rank">#--</span>
+          <span style="font-size: 14px; font-weight: 500; color: #cbd5e1;" id="friend-score">-- pts</span>
+        </div>
+        <div class="kpi-sub" id="friend-sub">
+          Shiva Choudhry · Loading status...
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">
+          <span>👥 Total Candidates</span>
+          <span>Cohort</span>
+        </div>
+        <div class="kpi-value">
+          <span id="total-candidates">205</span>
+        </div>
+        <div class="kpi-sub">
+          <span id="active-candidates">--</span> active participants (>0 pts)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">
+          <span>🎯 Benchmark</span>
+          <span>Max Score</span>
+        </div>
+        <div class="kpi-value">
+          <span id="max-score">26</span>
+          <span style="font-size: 14px; font-weight: 500; color: #cbd5e1;">pts</span>
+        </div>
+        <div class="kpi-sub">
+          <span id="tied-count">3</span> candidates at peak score
+        </div>
+      </div>
+    </section>
+
+    <!-- Top 3 Podium -->
+    <section class="podium-container" id="podium-section">
+      <!-- Populated dynamically -->
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="search-input" placeholder="Search by name (e.g. Shiva, Saransh, Ayush)..." oninput="applyFilters()" />
+      </div>
+      <div class="filter-pills">
+        <button class="pill active" data-filter="all" onclick="setFilter('all', this)">All Candidates (205)</button>
+        <button class="pill" data-filter="app02" onclick="setFilter('app02', this)">🏆 App 02 Cohort (Your App - 100% Solved)</button>
+        <button class="pill" data-filter="top10" onclick="setFilter('top10', this)">Top 10 Global</button>
+        <button class="pill" data-filter="top25" onclick="setFilter('top25', this)">Top 25 Global</button>
+        <button class="pill" data-filter="friend" onclick="setFilter('friend', this)">🤝 Friend Watch (App 06)</button>
+        <button class="pill" data-filter="active" onclick="setFilter('active', this)">Active (&gt;0 pts)</button>
+      </div>
+    </div>
+
+    <!-- App Cohort Info Banner -->
+    <div style="background: rgba(16, 22, 36, 0.8); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.08em; margin-bottom: 4px;">🎯 App-Wise Cohort Normalization Intelligence</div>
+        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+          Springworks assigned 7 different apps (App 01–07). In <strong style="color: #f59e0b;">App 02 (Your App)</strong>, there were exactly <strong>15 planted bugs</strong>. 
+          You hold <strong style="color: #10b981;">100% Completion (15/15 Solved)</strong> — Rank #1 in App 02!
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <div style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); border-radius: 8px; padding: 6px 12px; text-align: center;">
+          <div style="font-size: 10px; color: #f59e0b; font-weight: 700; text-transform: uppercase;">Your App (App 02)</div>
+          <div style="font-size: 14px; font-weight: 800; color: #fff;">#1 Saransh (100%)</div>
+        </div>
+        <div style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); border-radius: 8px; padding: 6px 12px; text-align: center;">
+          <div style="font-size: 10px; color: #06b6d4; font-weight: 700; text-transform: uppercase;">Friend App (App 06)</div>
+          <div style="font-size: 14px; font-weight: 800; color: #fff;">#43 Shiva (5 Solved)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table of 205 Candidates -->
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">Rank</th>
+              <th>Candidate Name</th>
+              <th style="width: 130px;">Score</th>
+              <th style="width: 140px;">Bugs Solved</th>
+              <th style="width: 180px;">First Blood (IST)</th>
+              <th style="width: 100px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody">
+            <tr>
+              <td colspan="6" class="empty-state">Loading live scoreboard data from Render…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    const API_URL = 'https://sv-qa-scoreboard.onrender.com/api/leaderboard';
+    let fullData = [];
+    let previousScores = new Map();
+    let currentFilter = 'all';
+    let soundEnabled = true;
+
+    // Web Audio chime for changes
+    function playChime(freq = 880) {
+      if (!soundEnabled) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-state').textContent = soundEnabled ? 'ON' : 'OFF';
+      document.getElementById('sound-icon').textContent = soundEnabled ? '🔔' : '🔕';
+      if (soundEnabled) playChime(660);
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      toast.innerHTML = `<span>⚡</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function formatIST(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (diffSec < 60) return `${diffSec}s ago`;
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHr = Math.floor(diffMin / 60);
+      return `${diffHr}h ago`;
+    }
+
+    async function fetchLeaderboard(isManual = false) {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        
+        // Detect score/rank updates in top 20
+        if (previousScores.size > 0) {
+          data.slice(0, 25).forEach((item, idx) => {
+            const oldScore = previousScores.get(item.name);
+            if (oldScore !== undefined && item.score > oldScore) {
+              showToast(`<strong>${item.name}</strong> just scored +${item.score - oldScore} pts (Rank #${idx+1})!`);
+              playChime(1046.5); // high C
+            }
+          });
+        }
+
+        // Store latest scores
+        previousScores.clear();
+        data.forEach(item => previousScores.set(item.name, item.score));
+
+        fullData = data;
+        updateKPIs(data);
+        renderPodium(data);
+        applyFilters();
+
+        const now = new Date();
+        document.getElementById('last-sync-time').textContent = now.toLocaleTimeString('en-IN', { hour12: true });
+        
+        if (isManual) showToast('Scores refreshed successfully.');
+      } catch (err) {
+        console.error('Fetch error:', err);
+        document.getElementById('last-sync-time').textContent = 'Retrying…';
+      }
+    }
+
+    function updateKPIs(data) {
+      document.getElementById('total-candidates').textContent = data.length;
+      const activeCount = data.filter(r => r.score > 0).length;
+      document.getElementById('active-candidates').textContent = `${activeCount} (${Math.round(activeCount / data.length * 100)}%)`;
+
+      const maxScore = Math.max(...data.map(r => r.score || 0));
+      document.getElementById('max-score').textContent = maxScore;
+      const tiedCount = data.filter(r => r.score === maxScore).length;
+      document.getElementById('tied-count').textContent = tiedCount;
+
+      // Friend stats (Shiva Choudhry)
+      const friendIdx = data.findIndex(r => r.name && r.name.toLowerCase().includes('shiva') && r.name.toLowerCase().includes('choudhry'));
+      if (friendIdx !== -1) {
+        const friend = data[friendIdx];
+        document.getElementById('friend-rank').textContent = `#${friendIdx + 1}`;
+        document.getElementById('friend-score').textContent = `${friend.score} pts`;
+        document.getElementById('friend-sub').textContent = `${friend.name} · Solved: ${friend.solved} bugs`;
+      }
+    }
+
+    function renderPodium(data) {
+      const top3 = data.slice(0, 3);
+      const container = document.getElementById('podium-section');
+      if (top3.length < 3) return;
+
+      const order = [top3[1], top3[0], top3[2]]; // 2nd, 1st, 3rd layout
+      const ranks = [2, 1, 3];
+      const badges = ['2nd Place', '🥇 Undisputed #1', '3rd Place'];
+      const icons = ['🥈', '👑', '🥉'];
+
+      container.innerHTML = order.map((c, i) => {
+        const actualRank = ranks[i];
+        const isUser = c.name === 'Saransh Singh';
+        return `
+          <div class="podium-card rank-${actualRank}">
+            <div class="crown-icon">${icons[i]}</div>
+            <div class="podium-rank-badge">${badges[i]}</div>
+            <div class="podium-name">${c.name} ${isUser ? '<span class="user-tag">YOU</span>' : ''}</div>
+            <div class="podium-score">${c.score} <span style="font-size: 14px; font-weight: 500; color: #94a3b8;">pts</span></div>
+            <div class="podium-details">
+              <strong>${c.solved} Bugs Solved</strong><br>
+              First Blood: ${formatIST(c.first_blood_at)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setFilter(filterType, element) {
+      currentFilter = filterType;
+      document.querySelectorAll('.filter-pills .pill').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+      let filtered = fullData.map((item, index) => ({ ...item, rank: index + 1 }));
+
+      if (currentFilter === 'top10') filtered = filtered.slice(0, 10);
+      else if (currentFilter === 'top25') filtered = filtered.slice(0, 25);
+      else if (currentFilter === 'active') filtered = filtered.filter(r => r.score > 0);
+      else if (currentFilter === 'zero') filtered = filtered.filter(r => r.score === 0);
+      else if (currentFilter === 'app02') {
+        // App 02 cohort has max 15 bugs / 26 pts
+        filtered = filtered.filter(r => r.solved <= 15);
+      }
+      else if (currentFilter === 'friend') {
+        filtered = filtered.filter(r => r.name && r.name.toLowerCase().includes('shiva'));
+      }
+
+      if (searchVal) {
+        filtered = filtered.filter(r => 
+          (r.name && r.name.toLowerCase().includes(searchVal)) ||
+          (r.student_id && r.student_id.toLowerCase().includes(searchVal)) ||
+          String(r.rank).includes(searchVal)
+        );
+      }
+
+      renderTable(filtered);
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('leaderboard-tbody');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No candidates found matching your filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const isUser = r.name === 'Saransh Singh';
+        const isFriend = r.name && r.name.toLowerCase().includes('shiva') && r.name.toLowerCase().includes('choudhry');
+        const rowClass = isUser ? 'row-user' : (isFriend ? 'row-friend' : '');
+        const rankClass = r.rank === 1 ? 'top-1' : (r.rank === 2 ? 'top-2' : (r.rank === 3 ? 'top-3' : ''));
+        const scorePct = Math.min(100, Math.round((r.score / 26) * 100));
+
+        return `
+          <tr class="${rowClass}" id="candidate-row-${encodeURIComponent(r.name)}">
+            <td class="rank-cell ${rankClass}">
+              ${r.rank === 1 ? '🥇 #1' : (r.rank === 2 ? '🥈 #2' : (r.rank === 3 ? '🥉 #3' : `#${r.rank}`))}
+            </td>
+            <td>
+              <div class="name-cell">
+                <span>${r.name || 'Anonymous'}</span>
+                ${isUser ? '<span class="user-tag">YOU (RANK #1)</span>' : ''}
+                ${isFriend ? '<span class="friend-tag">FRIEND</span>' : ''}
+              </div>
+            </td>
+            <td>
+              <div class="score-cell">${r.score}</div>
+              <div class="score-bar-container">
+                <div class="score-bar-fill ${r.score >= 26 ? 'max' : ''}" style="width: ${scorePct}%;"></div>
+              </div>
+            </td>
+            <td>
+              <span class="solved-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                ${r.solved} bugs
+              </span>
+            </td>
+            <td class="time-cell">
+              ${formatIST(r.first_blood_at)}
+              ${r.first_blood_at ? `<span style="color: var(--text-muted); font-size: 11px;">(${timeAgo(r.first_blood_at)})</span>` : ''}
+            </td>
+            <td>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: ${r.score > 0 ? '#10b981' : '#64748b'};">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: ${r.score > 0 ? '#10b981' : '#64748b'};"></span>
+                ${r.score > 0 ? 'Active' : 'Unscored'}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function scrollToCandidate(namePart) {
+      document.getElementById('search-input').value = namePart;
+      applyFilters();
+      const target = document.querySelector('.row-friend') || document.querySelector('.row-user');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // Initial load
+    fetchLeaderboard();
+
+    // Auto-refresh every 5 seconds
+    setInterval(() => fetchLeaderboard(false), 5000);
+  </script>
+</body>
+</html>
