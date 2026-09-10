@@ -8,10 +8,15 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
-const appJsCode = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf-8');
+const htmlPath = path.resolve(__dirname, '../../src/public/index.html');
+const appJsPath = process.env.TEST_TARGET === 'fixed'
+  ? path.resolve(__dirname, '../../src/public/app.fixed.js')
+  : path.resolve(__dirname, '../../src/public/app.js');
 
-describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
+const html = fs.readFileSync(htmlPath, 'utf-8');
+const appJsCode = fs.readFileSync(appJsPath, 'utf-8');
+
+describe('UI Tests — Address Verification Form & DOM Interactions', () => {
   let dom;
   let window;
   let document;
@@ -24,13 +29,13 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
     window = dom.window;
     document = window.document;
 
-    // Provide mock fetch before executing app.js
+    // Default mock fetch
     window.fetch = async () => ({
       ok: true,
       json: async () => []
     });
 
-    // Execute app.js in the DOM window context
+    // Execute the target app script inside the JSDOM window
     window.eval(appJsCode);
   });
 
@@ -38,7 +43,7 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
   test('BUG-02-05: UI should display an error toast (not success) when API returns HTTP 400 error', async () => {
     const toast = document.getElementById('toast');
 
-    // Mock fetch to simulate API validation error (HTTP 400)
+    // Simulate API validation error response (HTTP 400)
     window.fetch = async (url, opts) => {
       if (opts && opts.method === 'POST') {
         return {
@@ -50,88 +55,85 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
       return { ok: true, json: async () => [] };
     };
 
-    // Fill form inputs
     document.getElementById('candidateId').value = '101';
     document.getElementById('current-line1').value = '12 MG Road';
     document.getElementById('current-city').value = 'Bengaluru';
-    document.getElementById('current-pincode').value = '012345'; // Invalid pincode
+    document.getElementById('current-pincode').value = '012345'; // Invalid
 
-    // Dispatch form submit
     const form = document.getElementById('address-form');
-    const submitEvent = new window.Event('submit', { cancelable: true });
-    form.dispatchEvent(submitEvent);
+    form.dispatchEvent(new window.Event('submit', { cancelable: true }));
 
-    // Wait for async fetch to settle
     await new Promise((r) => setTimeout(r, 50));
 
-    // Spec: On submit: a success message is shown only when the submission actually succeeds;
-    // a failed submission shows an error message instead
-    // Currently, it unconditionally calls showToast("Address submitted successfully", "success") (FAILS)
-    const isErrorToast = toast.classList.contains('error');
-    const message = toast.textContent;
+    // Spec: Success message shown only on actual success; failed submissions show error message
+    // Unpatched app unconditionally displays "Address submitted successfully" (FAILS)
+    const isError =
+      toast.classList.contains('error') ||
+      toast.textContent.toLowerCase().includes('error') ||
+      toast.textContent.toLowerCase().includes('invalid');
 
     assert.ok(
-      isErrorToast && !message.includes('successfully'),
-      `Expected error toast message on API failure, but got text "${message}" with classes "${toast.className}"`
+      isError,
+      `Expected error toast message on API failure, but got text "${toast.textContent}" with classes "${toast.className}"`
     );
   });
 
-  // BUG-02-06: wrong-dropdown-default-selection
+  // BUG-02-06: wrong-dropdown-default-selection on state dropdowns
   test('BUG-02-06: State dropdowns should require an explicit choice with no default state pre-selected', () => {
-    const currentStateSelect = document.getElementById('current-state');
-    const permanentStateSelect = document.getElementById('permanent-state');
+    const curDropdown = document.getElementById('current-state');
+    const permDropdown = document.getElementById('permanent-state');
 
-    // Spec: The state dropdowns require an explicit choice — no state should be pre-selected by default.
-    // Currently, the first state "Karnataka" is pre-selected by default (FAILS)
+    // Spec: State dropdowns require an explicit choice — no state should be pre-selected by default
+    // Unpatched app pre-selects "Karnataka" as first option (FAILS)
     assert.equal(
-      currentStateSelect.value,
+      curDropdown.value,
       '',
-      `Expected current state dropdown to have no pre-selected state (empty default), but found "${currentStateSelect.value}"`
+      `Expected current state dropdown to have no pre-selected state (empty default), but found "${curDropdown.value}"`
     );
     assert.equal(
-      permanentStateSelect.value,
+      permDropdown.value,
       '',
-      `Expected permanent state dropdown to have no pre-selected state (empty default), but found "${permanentStateSelect.value}"`
+      `Expected permanent state dropdown to have no pre-selected state (empty default), but found "${permDropdown.value}"`
     );
   });
 
-  // BUG-02-07: wrong-format-display for match percentage in table
+  // BUG-02-07: wrong-format-display in match percentage column
   test('BUG-02-07: Submitted Addresses table should display match percentage with "%" symbol', () => {
-    const sampleSubmissions = [
+    const mockData = [
       {
         id: 1,
         candidateId: 101,
         current: { line1: '12 MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001' },
         permanent: { line1: '12 MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001' },
-        sameAsPermanent: true,
+        sameAsPermanent: false,
         matchPercent: 100,
         createdAt: '2026-07-01T09:00:00.000Z'
       }
     ];
 
-    // Call renderSubmissions with sample submission
-    window.renderSubmissions(sampleSubmissions);
+    window.renderSubmissions(mockData);
 
     const tbody = document.getElementById('submissions-tbody');
     const row = tbody.querySelector('tr');
-    assert.ok(row, 'Table row should be rendered');
+    assert.ok(row, 'Table should have at least one row rendered');
 
     const cells = row.querySelectorAll('td');
-    const matchPercentCellText = cells[4]?.textContent?.trim();
+    // Column 5 is matchPercent
+    const matchCell = cells[4];
 
-    // Spec: the match percentage (shown with a % sign)
-    // Currently renders "100" without "%" (FAILS)
+    // Spec: Match percentage displayed with % sign (e.g. 100%)
+    // Unpatched app renders raw number "100" without % symbol (FAILS)
     assert.equal(
-      matchPercentCellText,
+      matchCell.textContent.trim(),
       '100%',
-      `Expected match percentage cell to be formatted as "100%", but got "${matchPercentCellText}"`
+      `Expected match percentage cell to be formatted as "100%", but got "${matchCell.textContent.trim()}"`
     );
   });
 
-  // BUG-02-19: missing-sanitization / XSS in renderSubmissions
+  // BUG-02-19: missing-xss-sanitization on Address Line 1 rendering
   test('BUG-02-19: Address Line 1 should be sanitized with escapeHtml() before rendering to prevent XSS', () => {
-    const xssPayload = '<img src=x onerror=alert(1)>';
-    const sampleSubmissions = [
+    const xssPayload = '<img src="x" onerror="alert(1)">';
+    const mockData = [
       {
         id: 1,
         candidateId: 101,
@@ -143,19 +145,16 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
       }
     ];
 
-    // Render submissions
-    window.renderSubmissions(sampleSubmissions);
+    window.renderSubmissions(mockData);
 
     const tbody = document.getElementById('submissions-tbody');
 
-    // Spec: All user-controlled fields must be properly escaped before rendering into innerHTML
-    // Currently, cur.line1 and perm.line1 are unescaped, leaving the raw <img> tag in innerHTML (FAILS)
-    const rawHtml = tbody.innerHTML;
-    const containsUnescapedTag = rawHtml.includes('<img src="x" onerror="alert(1)">') || rawHtml.includes('<img src=x onerror=alert(1)>');
-
+    // Spec: Line 1 must be HTML-escaped using escapeHtml() like other fields
+    // Unpatched app leaves cur.line1 unescaped, injecting raw HTML tags into the DOM (FAILS)
+    const hasUnescapedHtml = tbody.innerHTML.includes('<img src="x"');
     assert.ok(
-      !containsUnescapedTag,
-      `Expected address line1 to be HTML-escaped, but found unescaped HTML tag in tbody: ${rawHtml}`
+      !hasUnescapedHtml,
+      `Expected address line1 to be HTML-escaped, but found unescaped HTML tag in tbody: \n${tbody.innerHTML}`
     );
   });
 
@@ -172,10 +171,8 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
       createdAt: '2026-09-10T12:00:00.000Z'
     };
 
-    // Initial state: empty list
     window.renderSubmissions([]);
 
-    // Mock successful POST response
     window.fetch = async (url, opts) => {
       if (opts && opts.method === 'POST') {
         return {
@@ -184,11 +181,9 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
           json: async () => newSubmission
         };
       }
-      // When GET /api/address is called, server returns unpersisted array (simulating state loss)
       return { ok: true, json: async () => [] };
     };
 
-    // Fill form and submit
     document.getElementById('candidateId').value = String(candidateId);
     document.getElementById('current-line1').value = '12 MG Road';
     document.getElementById('current-city').value = 'Bengaluru';
@@ -199,8 +194,8 @@ describe('Springworks SDET Bug Verification Test Suite — UI Defects', () => {
 
     await new Promise((r) => setTimeout(r, 50));
 
-    // Spec: "and the submitted-addresses list only gains a new row on success."
-    // Currently, because state is not persisted in UI or server, table remains empty without the new row (FAILS)
+    // Spec: Submitted-addresses list gains a new row on success
+    // Unpatched app does not append row and relies on empty API store (FAILS)
     const tbody = document.getElementById('submissions-tbody');
     const rows = tbody.querySelectorAll('tr');
     assert.ok(

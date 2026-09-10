@@ -2,19 +2,22 @@
   "name": "springworks-sdet-hackathon-address-verify",
   "version": "1.0.0",
   "type": "module",
-  "description": "Springworks SDET Internship Hackathon automated test suite proving all planted defects in App 02",
-  "main": "app.js",
+  "description": "Springworks SDET Internship Hackathon automated test suite proving all 15 planted defects in App 02, plus optional bonus fixes",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node 02-address-verification-form/server.js",
-    "test": "node --test tests/*.bugs.test.js",
-    "test:api": "node --test tests/api.bugs.test.js",
-    "test:ui": "node --test tests/ui.bugs.test.js"
+    "start": "node src/server.js",
+    "start:fixed": "PORT=3002 node src/server.fixed.js",
+    "test": "node --test tests/**/*.spec.js",
+    "test:api": "node --test tests/api/*.spec.js",
+    "test:ui": "node --test tests/ui/*.spec.js",
+    "test:fixed": "node scripts/run-fixed-tests.js"
   },
   "keywords": [
     "sdet",
     "hackathon",
     "automated-tests",
-    "qa"
+    "qa",
+    "springworks"
   ],
   "author": "Saransh Singh",
   "license": "ISC",
