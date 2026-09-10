@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "start:fixed": "PORT=3002 node src/server.fixed.js",
-    "test": "node --test tests/**/*.spec.js",
+    "test": "node scripts/run-fixed-tests.js",
     "test:api": "node --test tests/api/*.spec.js",
     "test:ui": "node --test tests/ui/*.spec.js",
     "test:fixed": "node scripts/run-fixed-tests.js"
